@@ -23,7 +23,7 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-          target: armv7-unknown-linux-uclibceabi
+          target: armv7-unknown-linux-gnueabihf
           override: true
 
       - uses: actions/cache@v3
@@ -39,8 +39,10 @@ jobs:
           cat <<EOF > Cross.toml
             [target.armv7-unknown-linux-gnueabihf]
             pre-build = [
-              "dpkg --add-architecture $CROSS_DEB_ARCH",
-              "apt-get update && apt-get install --assume-yes libssl-dev:$CROSS_DEB_ARCH"
+              "dpkg --add-architecture armhf",
+              "apt-get update",
+              "apt-get install -y curl git build-essential",
+              "apt-get install -y libc6-armhf-cross libc6-dev-armhf-cross gcc-arm-linux-gnueabihf"
             ]
           EOF
 
@@ -55,12 +57,12 @@ jobs:
 
       - uses: ncipollo/release-action@v1
         with:
-          tag: ${{ github.event.inputs.tag }}
+          tag: 5.2.6
           commit: main
           token: ${{ secrets.GITHUB_TOKEN }}
           body: 'Automatic release via CI: ${{ github.event.inputs.tag }}'
           artifacts: |
-            ${{ github.workspace }}/target/armv7-unknown-linux-gnueabihf/release/migration-engine,
+            ${{ github.workspace }}/target/armv7-unknown-linux-gnueabihf/release/schema-engine,
             ${{ github.workspace }}/target/armv7-unknown-linux-gnueabihf/release/prisma-fmt,
             ${{ github.workspace }}/target/armv7-unknown-linux-gnueabihf/release/query-engine,
-            ${{ github.workspace }}/target/armv7-unknown-linux-gnueabihf/release/libquery_engine.dylib
+            ${{ github.workspace }}/target/armv7-unknown-linux-gnueabihf/release/psl,
